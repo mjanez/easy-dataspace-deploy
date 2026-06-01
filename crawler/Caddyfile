@@ -1,0 +1,3 @@
+http://:{$CRAWLER_PUBLIC_PORT} {
+  reverse_proxy {$CRAWLER_UPSTREAM_HOST}:11003
+}

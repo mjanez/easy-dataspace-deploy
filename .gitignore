@@ -1,0 +1,8 @@
+.env
+connectors/daps/*.pem
+connectors/daps/*.p12
+connectors/daps/*-vault.env
+crawler/daps-*.pem
+crawler/daps-vault.env
+crawler/portal-central-component.properties
+observability/agent/

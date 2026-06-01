@@ -1,0 +1,32 @@
+:{$PORTAL_PUBLIC_PORT} {
+  map {path} {target_host} {target_port} {
+    ~^/api/.*      {$AUTH_PROXY_UPSTREAM_HOST}   8080
+    ~^/oauth2/.*   {$AUTH_PROXY_UPSTREAM_HOST}   8080
+    default        {$FRONTEND_UPSTREAM_HOST}     8080
+  }
+
+  reverse_proxy {target_host}:{target_port} {
+    header_down -Gap-Auth
+  }
+
+  header {
+    X-Frame-Options "DENY"
+    +Content-Security-Policy "frame-ancestors 'none'"
+  }
+
+  header /api/* {
+    X-Content-Type-Options nosniff
+    +Content-Security-Policy "script-src 'none'"
+    +Cache-Control "no-store"
+  }
+
+  header /assets/* {
+    +Cache-Control "public, max-age=2592000, immutable"
+  }
+}
+
+:8081 {
+  reverse_proxy {$BACKEND_UPSTREAM_HOST}:8080 {
+    header_up Authorization "Bearer {header.X-Forwarded-Access-Token}"
+  }
+}

@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'connector-a'
+    static_configs:
+      - targets: ['connector-a-connector:9464']
+  - job_name: 'connector-b'
+    static_configs:
+      - targets: ['connector-b-connector:9464']
+  - job_name: 'connector-c'
+    static_configs:
+      - targets: ['connector-c-connector:9464']

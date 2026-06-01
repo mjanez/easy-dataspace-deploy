@@ -1,0 +1,79 @@
+# OpenTelemetry + Jaeger + Prometheus overlay.
+#
+#   ./observability/download-otel-agent.sh
+#   docker compose -f docker-compose.yml -f docker-compose.telemetry.yml up -d
+#
+# Jaeger UI:    http://localhost:16686
+# Prometheus:   http://localhost:9090
+
+services:
+  jaeger:
+    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.64.0}
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_OTLP_HTTP_PORT:-4318}:4318"
+      - "${JAEGER_OTLP_GRPC_PORT:-4317}:4317"
+    networks:
+      - dataspace
+
+  prometheus:
+    image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.55.1}
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - dataspace
+
+  connector-a-connector:
+    depends_on:
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./observability/agent/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar:ro
+    environment:
+      JAVA_ARGS: "-javaagent:/otel/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: ${CONNECTOR_A_OTEL_SERVICE_NAME:-connector-a}
+      OTEL_LOGS_EXPORTER: ${OTEL_LOGS_EXPORTER:-none}
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_METRICS_EXPORTER: ${OTEL_METRICS_EXPORTER:-prometheus}
+      OTEL_EXPORTER_PROMETHEUS_HOST: ${OTEL_EXPORTER_PROMETHEUS_HOST:-0.0.0.0}
+      OTEL_EXPORTER_PROMETHEUS_PORT: ${OTEL_EXPORTER_PROMETHEUS_PORT:-9464}
+
+  connector-b-connector:
+    depends_on:
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./observability/agent/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar:ro
+    environment:
+      JAVA_ARGS: "-javaagent:/otel/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: ${CONNECTOR_B_OTEL_SERVICE_NAME:-connector-b}
+      OTEL_LOGS_EXPORTER: ${OTEL_LOGS_EXPORTER:-none}
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_METRICS_EXPORTER: ${OTEL_METRICS_EXPORTER:-prometheus}
+      OTEL_EXPORTER_PROMETHEUS_HOST: ${OTEL_EXPORTER_PROMETHEUS_HOST:-0.0.0.0}
+      OTEL_EXPORTER_PROMETHEUS_PORT: ${OTEL_EXPORTER_PROMETHEUS_PORT:-9464}
+
+  connector-c-connector:
+    depends_on:
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./observability/agent/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar:ro
+    environment:
+      JAVA_ARGS: "-javaagent:/otel/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: ${CONNECTOR_C_OTEL_SERVICE_NAME:-connector-c}
+      OTEL_LOGS_EXPORTER: ${OTEL_LOGS_EXPORTER:-none}
+      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_METRICS_EXPORTER: ${OTEL_METRICS_EXPORTER:-prometheus}
+      OTEL_EXPORTER_PROMETHEUS_HOST: ${OTEL_EXPORTER_PROMETHEUS_HOST:-0.0.0.0}
+      OTEL_EXPORTER_PROMETHEUS_PORT: ${OTEL_EXPORTER_PROMETHEUS_PORT:-9464}
